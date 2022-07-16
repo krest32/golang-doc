@@ -107,6 +107,21 @@
    go env -w GOPROXY=https://goproxy.cn,direct
    ~~~
 
+6. 如果使用 vscode，最好使用以下配置
+
+   ~~~json
+   {
+       "window.zoomLevel": 1,
+       "go.autocompleteUnimportedPackages": true,
+       "go.gocodePackageLookupMode": "go",
+       "go.gotoSymbol.includeImports": true,
+       "go.useCodeSnippetsOnFunctionSuggest": true,
+       "go.inferGopath": true,
+       "go.gopath":"",
+       "go.useCodeSnippetsOnFunctionSuggestWithoutType": true,
+   }
+   ~~~
+
    
 
 ## 版本控制
@@ -407,6 +422,30 @@ func  main()  {
 	fmt.Printf("a 的值为：%d\n", a)
 }
 ~~~
+
+
+
+#### 复杂用法
+
+~~~golang
+func method2(nums []int, target int) []int {
+	// 定义map
+    data := map[int]int{}
+	// 遍历数组
+    for i, num := range nums {
+		// 如果存在 data[target-num], p = data[target-num], ok = true, 否则 ok = false
+        if p, ok := data[target-num]; ok {
+			return []int{p, i}
+		}
+		data[num] = i
+	}
+	return nil
+}
+~~~
+
+
+
+
 
 
 

@@ -83,15 +83,13 @@
 
 
 
-
-
 ## 必要准备工作
 
-1. 安装golang
+1. 安装golang（菜鸟教程的安装针对的是go1.14版本，会有点老旧，推荐找一些最新的资源）
 
-2. 配置`GoPath`和`GoRoot`
+2. 系统参数中配置`GoPath`和`GoRoot`
 
-3. `IDE`工具`Goland`
+3. `IDE`工具`Goland`，配置GORoot和GOPATH
 
 4. 安装依赖版本控制工具 -> godep
 
@@ -105,21 +103,6 @@
 
    ~~~bash
    go env -w GOPROXY=https://goproxy.cn,direct
-   ~~~
-
-6. 如果使用 vscode，最好使用以下配置
-
-   ~~~json
-   {
-       "window.zoomLevel": 1,
-       "go.autocompleteUnimportedPackages": true,
-       "go.gocodePackageLookupMode": "go",
-       "go.gotoSymbol.includeImports": true,
-       "go.useCodeSnippetsOnFunctionSuggest": true,
-       "go.inferGopath": true,
-       "go.gopath":"",
-       "go.useCodeSnippetsOnFunctionSuggestWithoutType": true,
-   }
    ~~~
 
    

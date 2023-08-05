@@ -1,5 +1,18 @@
 # Golang
 
+## 资料
+
+### 基本语法
+
++ [菜鸟教程](https://www.runoob.com/go/go-tutorial.html)
++ [Go编程时光](https://golang.iswbm.com/)
++ [**Go by Example**](https://gobyexample-cn.github.io/)
++ [**TopGoer 教程**](http://www.topgoer.com/)
++ [**跟煎鱼学Go**](https://eddycjy.gitbook.io/golang/)
++ [**mojotv 进阶系列**](https://mojotv.cn/404#Golang)
++ [**Go 语言简明教程**](https://geektutu.com/post/quick-golang.html)
++ [**Go 语言高级编程**](https://chai2010.gitbooks.io/advanced-go-programming-book/content/)
+
 ## 了解
 
 ### 基本情况
@@ -248,8 +261,6 @@ Go语言中有25个关键字：
                  complex  real  imag
                  panic  recover
 ~~~
-
-
 
 
 
@@ -1154,6 +1165,82 @@ func main() {
 }
 ~~~
 
+### 切片
+
+​		切片是对数组的抽象。Go 数组的长度不可改变，在特定场景中这样的集合就不太适用，Go 中提供了一种灵活，功能强悍的内置类型切片("动态数组")，与数组相比切片的长度是不固定的，可以追加元素，在追加时可能使切片的容量增大。
+
+~~~go
+package main
+
+import "fmt"
+
+func main() {
+   var numbers = make([]int,3,5)
+   printSlice(numbers)
+}
+func printSlice(x []int){
+   fmt.Printf("len=%d cap=%d slice=%v\n",len(x),cap(x),x)
+}
+~~~
+
+
+
+### make函数
+
+`make()` 是 `Go` 语言内存分配的内置函数，默认有三个参数。它的作用是为slice、map或chan初始化并返回引用。make仅仅用于创建slice、map和channel，并返回它们的实例。
+
++ Type：数据类型，必要参数，Type 的值只能是 slice、 map、 channel 这三种数据类型。
++ len：数据类型实际占用的内存空间长度，map、 channel 是可选参数，slice 是必要参数。
++ cap：为数据类型提前预留的内存空间长度，可选参数。所谓的提前预留是当前为数据类型申请内存空间的时候，提前申请好额外的内存空间，这样可以避免二次分配内存带来的开销，大大提高程序的性能
+
+~~~go
+package main
+
+import "fmt"
+
+func main()  {
+	// 第一个长度，第二个为容量，可以不写第二个参数，默认为10
+	s1 :=make([]int ,5,10)
+	fmt.Println(len(s1),cap(s1))
+}
+
+~~~
+
+
+
+### 范围(Range)
+
+​		Go 语言中 range 关键字用于 for 循环中迭代数组(array)、切片(slice)、通道(channel)或集合(map)的元素。在数组和切片中它返回元素的索引和索引对应的值，在集合中返回 key-value 对。
+
+~~~go
+package main
+import "fmt"
+func main() {
+    //这是我们使用range去求一个slice的和。使用数组跟这个很类似
+    nums := []int{2, 3, 4}
+    sum := 0
+    for _, num := range nums {
+        sum += num
+    }
+    fmt.Println("sum:", sum)
+    //在数组上使用range将传入index和值两个变量。上面那个例子我们不需要使用该元素的序号，所以我们使用空白符"_"省略了。有时侯我们确实需要知道它的索引。
+    for i, num := range nums {
+        if num == 3 {
+            fmt.Println("index:", i)
+        }
+    }
+    //range也可以用在map的键值对上。
+    kvs := map[string]string{"a": "apple", "b": "banana"}
+    for k, v := range kvs {
+        fmt.Printf("%s -> %s\n", k, v)
+    }
+    //range也可以用来枚举Unicode字符串。第一个参数是字符的索引，第二个是字符（Unicode的值）本身。
+    for i, c := range "go" {
+        fmt.Println(i, c)
+    }
+}
+~~~
+
 
 
 ### 结构体
@@ -1191,78 +1278,6 @@ func main() {
 ~~~
 
 
-
-### 切片
-
-​		切片是对数组的抽象。Go 数组的长度不可改变，在特定场景中这样的集合就不太适用，Go 中提供了一种灵活，功能强悍的内置类型切片("动态数组")，与数组相比切片的长度是不固定的，可以追加元素，在追加时可能使切片的容量增大。
-
-~~~go
-package main
-
-import "fmt"
-
-func main() {
-   var numbers = make([]int,3,5)
-   printSlice(numbers)
-}
-func printSlice(x []int){
-   fmt.Printf("len=%d cap=%d slice=%v\n",len(x),cap(x),x)
-}
-~~~
-
-
-
-### make函数
-
-~~~go
-package main
-
-import "fmt"
-
-func main()  {
-	// 第一个长度，第二个为容量，可以不写第二个参数，默认为10
-	s1 :=make([]int ,5,10)
-	fmt.Println(len(s1),cap(s1))
-}
-
-~~~
-
-
-
-
-
-### 范围(Range)
-
-​		Go 语言中 range 关键字用于 for 循环中迭代数组(array)、切片(slice)、通道(channel)或集合(map)的元素。在数组和切片中它返回元素的索引和索引对应的值，在集合中返回 key-value 对。
-
-~~~go
-package main
-import "fmt"
-func main() {
-    //这是我们使用range去求一个slice的和。使用数组跟这个很类似
-    nums := []int{2, 3, 4}
-    sum := 0
-    for _, num := range nums {
-        sum += num
-    }
-    fmt.Println("sum:", sum)
-    //在数组上使用range将传入index和值两个变量。上面那个例子我们不需要使用该元素的序号，所以我们使用空白符"_"省略了。有时侯我们确实需要知道它的索引。
-    for i, num := range nums {
-        if num == 3 {
-            fmt.Println("index:", i)
-        }
-    }
-    //range也可以用在map的键值对上。
-    kvs := map[string]string{"a": "apple", "b": "banana"}
-    for k, v := range kvs {
-        fmt.Printf("%s -> %s\n", k, v)
-    }
-    //range也可以用来枚举Unicode字符串。第一个参数是字符的索引，第二个是字符（Unicode的值）本身。
-    for i, c := range "go" {
-        fmt.Println(i, c)
-    }
-}
-~~~
 
 
 
@@ -6164,8 +6179,6 @@ replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
 ## Go-Zero(非常推荐)
 
 [官方文档](https://go-zero.dev/docs/tasks)
-
-
 
 
 

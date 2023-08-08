@@ -6,12 +6,12 @@
 
 + [菜鸟教程](https://www.runoob.com/go/go-tutorial.html)
 + [Go编程时光](https://golang.iswbm.com/)
-+ [**Go by Example**](https://gobyexample-cn.github.io/)
-+ [**TopGoer 教程**](http://www.topgoer.com/)
-+ [**跟煎鱼学Go**](https://eddycjy.gitbook.io/golang/)
-+ [**mojotv 进阶系列**](https://mojotv.cn/404#Golang)
-+ [**Go 语言简明教程**](https://geektutu.com/post/quick-golang.html)
-+ [**Go 语言高级编程**](https://chai2010.gitbooks.io/advanced-go-programming-book/content/)
++ [Go by Example](https://gobyexample-cn.github.io/)
++ [TopGoer 教程](http://www.topgoer.com/)
++ [跟煎鱼学Go](https://eddycjy.gitbook.io/golang/)
++ [mojotv 进阶系列](https://mojotv.cn/404#Golang)
++ [Go 语言简明教程](https://geektutu.com/post/quick-golang.html)
++ [Go 语言高级编程](https://chai2010.gitbooks.io/advanced-go-programming-book/content/)
 
 ## 了解
 
@@ -3141,6 +3141,17 @@ func main() {
 
 
 ### GORM
+
+地址
+
+[gorm教程](http://www.topgoer.com/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%93%8D%E4%BD%9C/gorm/)
+
+~~~bash
+## 必须安装gorm
+go get -u gorm.io/gorm     
+## 安装相应的数据库驱动。GORM 官方支持的数据库类型有： MySQL, PostgreSQL, SQlite, SQL Server
+go get -u gorm.io/driver/mysql 
+~~~
 
 
 

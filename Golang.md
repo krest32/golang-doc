@@ -9,9 +9,9 @@
 + [Go by Example](https://gobyexample-cn.github.io/)
 + [TopGoer 教程](http://www.topgoer.com/)
 + [跟煎鱼学Go](https://eddycjy.gitbook.io/golang/)
-+ [mojotv 进阶系列](https://mojotv.cn/404#Golang)
 + [Go 语言简明教程](https://geektutu.com/post/quick-golang.html)
 + [Go 语言高级编程](https://chai2010.gitbooks.io/advanced-go-programming-book/content/)
++ [go-zero](http://www.jikejiaocheng.com/c/gozero-intro.html)
 
 ## 了解
 
@@ -6569,6 +6569,12 @@ replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
 ## Go-Zero(非常推荐)
 
 [官方文档](https://go-zero.dev/docs/tasks)
+
+官方示例代码
+
+~~~bash
+https://github.com/zeromicro/zero-examples.git
+~~~
 
 
 

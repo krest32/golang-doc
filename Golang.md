@@ -2614,13 +2614,11 @@ ozzo-validation是一个Go软件包，提供可配置和可扩展的数据验证
 
 
 
-### 日志库 Log
 
 
+### 配置文件 ini
 
-### 读取配置文件 ini
-
-### 配置文件
+#### 配置文件
 
 ~~~ini
 # possible values : production, development
@@ -2642,9 +2640,7 @@ http_port = 9999
 enforce_domain = true
 ~~~
 
-
-
-### 读取配置
+#### 读取配置
 
 ~~~go
 package main
@@ -2683,7 +2679,257 @@ func main() {
 }
 ~~~
 
+### 日志库 Log
 
+### 第三方日志库logrus
+
+​		日志是程序中必不可少的一个环节，由于Go语言内置的日志库功能比较简洁，我们在实际开发中通常会选择使用第三方的日志库来进行开发。本文介绍了`logrus`这个日志库的基本使用。
+
+#### logrus介绍
+
+Logrus是Go（golang）的结构化logger，与标准库logger完全API兼容。
+
+它有以下特点：
+
+- 完全兼容标准日志库，拥有七种日志级别：`Trace`, `Debug`, `Info`, `Warning`, `Error`, `Fatal`and `Panic`。
+- 可扩展的Hook机制，允许使用者通过Hook的方式将日志分发到任意地方，如本地文件系统，logstash，elasticsearch或者mq等，或者通过Hook定义日志内容和格式等
+- 可选的日志输出格式，内置了两种日志格式JSONFormater和TextFormatter，还可以自定义日志格式
+- Field机制，通过Filed机制进行结构化的日志记录
+- 线程安全
+
+#### 安装
+
+~~~bash
+go get github.com/sirupsen/logrus
+~~~
+
+#### 基本示例
+
+~~~go
+package main
+
+import (
+	"github.com/sirupsen/logrus"
+)
+var log = logrus.New()
+
+func main() {
+	log.WithFields(logrus.Fields{
+		"animal": "walrus",
+		"number": 1,
+		"size":   10,
+	}).Info("A walrus appears")
+}
+~~~
+
+#### 高级示例
+
+对于更高级的用法，例如在同一应用程序记录到多个位置，你还可以创建logrus Logger的实例：
+
+~~~go
+package main
+
+import (
+	"os"
+	"github.com/sirupsen/logrus"
+)
+
+// 创建一个新的logger实例。可以创建任意多个。
+var log2 = logrus.New()
+
+func main() {
+	// 设置日志输出为os.Stdout
+	log2.Out = os.Stdout
+
+	// 可以设置像文件等任意`io.Writer`类型作为日志输出
+	// file, err := os.OpenFile("logrus.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	// if err == nil {
+	//  log.Out = file
+	// } else {
+	//  log.Info("Failed to log to file, using default stderr")
+	// }
+
+	log2.WithFields(logrus.Fields{
+		"animal": "dog",
+		"size":   10,
+	}).Info("一群舔狗出现了。")
+}
+~~~
+
+
+
+#### 日志级别
+
+~~~go
+log.Trace("Something very low level.")
+log.Debug("Useful debugging information.")
+log.Info("Something noteworthy happened!")
+log.Warn("You should probably take a look at this.")
+log.Error("Something failed but I'm not quitting.")
+// 记完日志后会调用os.Exit(1) 
+log.Fatal("Bye.")
+// 记完日志后会调用 panic() 
+log.Panic("I'm bailing.")
+~~~
+
+
+
+#### 设置日志级别
+
+你可以在Logger上设置日志记录级别，然后它只会记录具有该级别或以上级别任何内容的条目：
+
+~~~go
+// 会记录info及以上级别 (warn, error, fatal, panic)
+log.SetLevel(log.InfoLevel)
+~~~
+
+
+
+#### 字段
+
+Logrus鼓励通过日志字段进行谨慎的结构化日志记录，而不是冗长的、不可解析的错误消息。
+
+例如，区别于使用`log.Fatalf("Failed to send event %s to topic %s with key %d")`，你应该使用如下方式记录更容易发现的内容:
+
+```go
+log.WithFields(log.Fields{
+  "event": event,
+  "topic": topic,
+  "key": key,
+}).Fatal("Failed to send event")
+```
+
+
+
+#### 默认字段
+
+通常，将一些字段始终附加到应用程序的全部或部分的日志语句中会很有帮助。例如，你可能希望始终在请求的上下文中记录`request_id`和`user_ip`。
+
+区别于在每一行日志中写上`log.WithFields(log.Fields{"request_id": request_id, "user_ip": user_ip})`，你可以向下面的示例代码一样创建一个`logrus.Entry`去传递这些字段。
+
+```go
+requestLogger := log.WithFields(log.Fields{"request_id": request_id, "user_ip": user_ip})
+requestLogger.Info("something happened on that request") # will log request_id and user_ip
+requestLogger.Warn("something not great happened")
+```
+
+#### 日志条目
+
+除了使用`WithField`或`WithFields`添加的字段外，一些字段会自动添加到所有日志记录事中:
+
+- time：记录日志时的时间戳
+- msg：记录的日志信息
+- level：记录的日志级别
+
+#### Hooks
+
+你可以添加日志级别的钩子（Hook）。例如，向异常跟踪服务发送`Error`、`Fatal`和`Panic`、信息到StatsD或同时将日志发送到多个位置，例如syslog。
+
+Logrus配有内置钩子。在`init`中添加这些内置钩子或你自定义的钩子：
+
+```go
+import (
+  log "github.com/sirupsen/logrus"
+  "gopkg.in/gemnasium/logrus-airbrake-hook.v2" // the package is named "airbrake"
+  logrus_syslog "github.com/sirupsen/logrus/hooks/syslog"
+  "log/syslog"
+)
+
+func init() {
+
+  // Use the Airbrake hook to report errors that have Error severity or above to
+  // an exception tracker. You can create custom hooks, see the Hooks section.
+  log.AddHook(airbrake.NewHook(123, "xyz", "production"))
+
+  hook, err := logrus_syslog.NewSyslogHook("udp", "localhost:514", syslog.LOG_INFO, "")
+  if err != nil {
+    log.Error("Unable to connect to local syslog daemon")
+  } else {
+    log.AddHook(hook)
+  }
+}
+```
+
+意：Syslog钩子还支持连接到本地syslog（例如. “/dev/log” or “/var/run/syslog” or “/var/run/log”)。有关详细信息，请查看[syslog hook README](https://github.com/sirupsen/logrus/blob/master/hooks/syslog/README.md)。
+
+
+
+#### 格式化
+
+logrus内置以下两种日志格式化程序：
+
+```
+logrus.TextFormatter` `logrus.JSONFormatter
+```
+
+还支持一些第三方的格式化程序，详见项目首页。
+
+
+
+#### 记录函数名
+
+如果你希望将调用的函数名添加为字段，请通过以下方式设置：
+
+```go
+log.SetReportCaller(true)
+```
+
+这会将调用者添加为”method”，如下所示：
+
+```json
+{"animal":"penguin","level":"fatal","method":"github.com/sirupsen/arcticcreatures.migrate","msg":"a penguin swims by",
+"time":"2014-03-10 19:57:38.562543129 -0400 EDT"}
+```
+
+**注意：**，开启这个模式会增加性能开销。
+
+
+
+#### 线程安全
+
+默认的logger在并发写的时候是被mutex保护的，比如当同时调用hook和写log时mutex就会被请求，有另外一种情况，文件是以appending mode打开的， 此时的并发操作就是安全的，可以用`logger.SetNoLock()`来关闭它。
+
+
+
+#### gin框架使用logrus
+
+```go
+// a gin with logrus demo
+
+var log = logrus.New()
+
+func init() {
+	// Log as JSON instead of the default ASCII formatter.
+	log.Formatter = &logrus.JSONFormatter{}
+	// Output to stdout instead of the default stderr
+	// Can be any io.Writer, see below for File example
+	f, _ := os.Create("./gin.log")
+	log.Out = f
+	gin.SetMode(gin.ReleaseMode)
+	gin.DefaultWriter = log.Out
+	// Only log the warning severity or above.
+	log.Level = logrus.InfoLevel
+}
+
+func main() {
+	// 创建一个默认的路由引擎
+	r := gin.Default()
+	// GET：请求方式；/hello：请求的路径
+	// 当客户端以GET方法请求/hello路径时，会执行后面的匿名函数
+	r.GET("/hello", func(c *gin.Context) {
+		log.WithFields(logrus.Fields{
+			"animal": "walrus",
+			"size":   10,
+		}).Warn("A group of walrus emerges from the ocean")
+		// c.JSON：返回JSON格式的数据
+		c.JSON(200, gin.H{
+			"message": "Hello world!",
+		})
+	})
+	// 启动HTTP服务，默认在0.0.0.0:8080启动服务
+	r.Run()
+}
+```
 
 
 
@@ -2865,11 +3111,142 @@ func CanBackquote(s string) bool
 
 
 
-### 标准库Context
+### Context
 
 ​		context就是用来简洁的管理goroutines的生命周期。
 
-​		每一个请求在都有一个对应的 goroutine 去处理。请求处理函数通常会启动额外的 goroutine 用来访问后端服务，比如数据库和RPC服务。用来处理一个请求的 goroutine 通常需要访问一些与请求特定的数据，比如终端用户的身份认证信息、验证相关的token、请求的截止时间。 当一个请求被取消或超时时，所有用来处理该请求的 goroutine 都应该迅速退出，然后系统才能释放这些 goroutine 占用的资源。
+​		Go1.7加入了一个新的标准库context，它定义了Context类型，专门用来简化 对于处理单个请求的多个 goroutine 之间与请求域的数据、取消信号、截止时间等相关操作，这些操作可能涉及多个 API 调用。
+
+对服务器传入的请求应该创建上下文，而对服务器的传出调用应该接受上下文。它们之间的函数调用链必须传递上下文，或者可以使用WithCancel、WithDeadline、WithTimeout或WithValue创建的派生上下文。当一个上下文被取消时，它派生的所有上下文也被取消。
+
+
+
+context.Context是一个接口，该接口定义了四个需要实现的方法。具体签名如下：
+
+~~~bash
+type Context interface {
+    Deadline() (deadline time.Time, ok bool)
+    Done() <-chan struct{}
+    Err() error
+    Value(key interface{}) interface{}
+}
+~~~
+
+其中：
+
+- Deadline方法需要返回当前Context被取消的时间，也就是完成工作的截止时间（deadline）；
+- Done方法需要返回一个Channel，这个Channel会在当前工作完成或者上下文被取消之后关闭，多次调用Done方法会返回同一个Channel；
+- Err方法会返回当前Context结束的原因，它只会在Done返回的Channel被关闭时才会返回非空的值；
+  - 如果当前Context被取消就会返回Canceled错误；
+  - 如果当前Context超时就会返回DeadlineExceeded错误；
+- Value方法会从Context中返回键对应的值，对于同一个上下文来说，多次调用Value 并传入相同的Key会返回相同的结果，该方法仅用于传递跨API和进程间跟请求域的数据；
+
+#### Background()和TODO()
+
+Go内置两个函数：Background()和TODO()，这两个函数分别返回一个实现了Context接口的background和todo。我们代码中最开始都是以这两个内置的上下文对象作为最顶层的partent context，衍生出更多的子上下文对象。
+
++ Background()主要用于main函数、初始化以及测试代码中，作为Context这个树结构的最顶层的Context，也就是根Context。
++ TODO()，它目前还不知道具体的使用场景，如果我们不知道该使用什么Context的时候，可以使用这个。
+
+background和todo本质上都是emptyCtx结构体类型，是一个不可取消，没有设置截止时间，没有携带任何值的Context。
+
+
+
+
+
+
+
+### Json
+
+#### 基本功能
+
+首先我们来看一下Go语言中`json.Marshal()`（序列化）与`json.Unmarshal`（反序列化）的基本用法。
+
+~~~go
+type Person struct {
+	Name   string
+	Age    int64
+	Weight float64
+}
+
+func main() {
+	p1 := Person{
+		Name:   "七米",
+		Age:    18,
+		Weight: 71.5,
+	}
+	// struct -> json string
+	b, err := json.Marshal(p1)
+	if err != nil {
+		fmt.Printf("json.Marshal failed, err:%v\n", err)
+		return
+	}
+	fmt.Printf("str:%s\n", b)
+	// json string -> struct
+	var p2 Person
+	err = json.Unmarshal(b, &p2)
+	if err != nil {
+		fmt.Printf("json.Unmarshal failed, err:%v\n", err)
+		return
+	}
+	fmt.Printf("p2:%#v\n", p2)
+}
+~~~
+
+#### 指定字段名
+
+序列化与反序列化默认情况下使用结构体的字段名，我们可以通过给结构体字段添加tag来指定json序列化生成的字段名。
+
+~~~go
+type Person2 struct {
+	// 指定json序列化/反序列化时使用小写name
+	Name   string	`json:"name"`
+	Age    int64
+	Weight float64
+}
+	
+~~~
+
+
+
+#### 忽略某个字段
+
+如果你想在json序列化/反序列化的时候忽略掉结构体中的某个字段，可以按如下方式在tag中添加`-`。
+
+~~~go
+// 使用json tag指定json序列化与反序列化时的行为
+type Person struct {
+	Name   string `json:"name"` // 指定json序列化/反序列化时使用小写name
+	Age    int64
+	Weight float64 `json:"-"` // 指定json序列化/反序列化时忽略此字段
+}
+~~~
+
+
+
+#### 忽略空值字段
+
+​		当 struct 中的字段没有值时， `json.Marshal()` 序列化的时候不会忽略这些字段，而是默认输出字段的类型零值（例如`int`和`float`类型零值是 0，`string`类型零值是`""`，对象类型零值是 nil）。如果想要在序列序列化时忽略这些没有值的字段时，可以在对应字段添加`omitempty` tag。
+
+~~~go
+type User struct {
+	Name  string   `json:"name"`
+	Email string   `json:"email,omitempty"`
+	Hobby []string `json:"hobby,omitempty"`
+}
+~~~
+
+
+
+#### 忽略嵌套结构体空值字段
+
+#### 不修改原结构体忽略空值字段
+
+#### 优雅处理字符串格式的数字
+
+#### 整数变浮点数
+
+#### 自定义解析时间字段
 
 
 
@@ -5369,6 +5746,9 @@ func main() {
 
 ### Grpc（远程调用）
 
++ [官方文档](https://grpc.io/docs/languages/go/)
++ [grpc微服务示例](http://www.topgoer.com/%E5%BE%AE%E6%9C%8D%E5%8A%A1/gRPC%E6%9E%84%E5%BB%BA%E5%BE%AE%E6%9C%8D%E5%8A%A1.html)
+
 #### 示例代码
 
 1. 下载protoc
@@ -5378,8 +5758,8 @@ func main() {
 2. 安装插件
 
    ~~~bash
-   $ go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.26
-   $ go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1
+   go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+   go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
    ~~~
 
 3. 示例代码
@@ -5432,11 +5812,10 @@ func main() {
    使用`protoc` 生成go代码
 
    ~~~go
-   protoc --go_out=. hello\hellp.proto
+   protoc  --go-grpc_out=.  --go_out=. hello\hellp.proto
    
-   protoc  --go-grpc_out=. hello\hello.proto
    ~~~
-
+   
 6. `greeter_server`
 
    ~~~go
@@ -6203,98 +6582,6 @@ replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
 
 ## 其他
 
-### Json
-
-#### 基本功能
-
-首先我们来看一下Go语言中`json.Marshal()`（序列化）与`json.Unmarshal`（反序列化）的基本用法。
-
-~~~go
-type Person struct {
-	Name   string
-	Age    int64
-	Weight float64
-}
-
-func main() {
-	p1 := Person{
-		Name:   "七米",
-		Age:    18,
-		Weight: 71.5,
-	}
-	// struct -> json string
-	b, err := json.Marshal(p1)
-	if err != nil {
-		fmt.Printf("json.Marshal failed, err:%v\n", err)
-		return
-	}
-	fmt.Printf("str:%s\n", b)
-	// json string -> struct
-	var p2 Person
-	err = json.Unmarshal(b, &p2)
-	if err != nil {
-		fmt.Printf("json.Unmarshal failed, err:%v\n", err)
-		return
-	}
-	fmt.Printf("p2:%#v\n", p2)
-}
-~~~
-
-#### 指定字段名
-
-序列化与反序列化默认情况下使用结构体的字段名，我们可以通过给结构体字段添加tag来指定json序列化生成的字段名。
-
-~~~go
-type Person2 struct {
-	// 指定json序列化/反序列化时使用小写name
-	Name   string	`json:"name"`
-	Age    int64
-	Weight float64
-}
-	
-~~~
-
-
-
-#### 忽略某个字段
-
-如果你想在json序列化/反序列化的时候忽略掉结构体中的某个字段，可以按如下方式在tag中添加`-`。
-
-~~~go
-// 使用json tag指定json序列化与反序列化时的行为
-type Person struct {
-	Name   string `json:"name"` // 指定json序列化/反序列化时使用小写name
-	Age    int64
-	Weight float64 `json:"-"` // 指定json序列化/反序列化时忽略此字段
-}
-~~~
-
-
-
-#### 忽略空值字段
-
-​		当 struct 中的字段没有值时， `json.Marshal()` 序列化的时候不会忽略这些字段，而是默认输出字段的类型零值（例如`int`和`float`类型零值是 0，`string`类型零值是`""`，对象类型零值是 nil）。如果想要在序列序列化时忽略这些没有值的字段时，可以在对应字段添加`omitempty` tag。
-
-~~~go
-type User struct {
-	Name  string   `json:"name"`
-	Email string   `json:"email,omitempty"`
-	Hobby []string `json:"hobby,omitempty"`
-}
-~~~
-
-
-
-#### 忽略嵌套结构体空值字段
-
-#### 不修改原结构体忽略空值字段
-
-#### 优雅处理字符串格式的数字
-
-#### 整数变浮点数
-
-#### 自定义解析时间字段
-
 
 
 ### gopsutil（性能测试）
@@ -6450,258 +6737,6 @@ func GetOutboundIP() string {
 
 
 
-### 第三方日志库logrus
-
-​		日志是程序中必不可少的一个环节，由于Go语言内置的日志库功能比较简洁，我们在实际开发中通常会选择使用第三方的日志库来进行开发。本文介绍了`logrus`这个日志库的基本使用。
-
-#### logrus介绍
-
-Logrus是Go（golang）的结构化logger，与标准库logger完全API兼容。
-
-它有以下特点：
-
-- 完全兼容标准日志库，拥有七种日志级别：`Trace`, `Debug`, `Info`, `Warning`, `Error`, `Fatal`and `Panic`。
-- 可扩展的Hook机制，允许使用者通过Hook的方式将日志分发到任意地方，如本地文件系统，logstash，elasticsearch或者mq等，或者通过Hook定义日志内容和格式等
-- 可选的日志输出格式，内置了两种日志格式JSONFormater和TextFormatter，还可以自定义日志格式
-- Field机制，通过Filed机制进行结构化的日志记录
-- 线程安全
-
-#### 安装
-
-~~~bash
-go get github.com/sirupsen/logrus
-~~~
-
-#### 基本示例
-
-~~~go
-package main
-
-import (
-	"github.com/sirupsen/logrus"
-)
-var log = logrus.New()
-
-func main() {
-	log.WithFields(logrus.Fields{
-		"animal": "walrus",
-		"number": 1,
-		"size":   10,
-	}).Info("A walrus appears")
-}
-~~~
-
-#### 高级示例
-
-对于更高级的用法，例如在同一应用程序记录到多个位置，你还可以创建logrus Logger的实例：
-
-~~~go
-package main
-
-import (
-	"os"
-	"github.com/sirupsen/logrus"
-)
-
-// 创建一个新的logger实例。可以创建任意多个。
-var log2 = logrus.New()
-
-func main() {
-	// 设置日志输出为os.Stdout
-	log2.Out = os.Stdout
-
-	// 可以设置像文件等任意`io.Writer`类型作为日志输出
-	// file, err := os.OpenFile("logrus.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	// if err == nil {
-	//  log.Out = file
-	// } else {
-	//  log.Info("Failed to log to file, using default stderr")
-	// }
-
-	log2.WithFields(logrus.Fields{
-		"animal": "dog",
-		"size":   10,
-	}).Info("一群舔狗出现了。")
-}
-~~~
-
-
-
-#### 日志级别
-
-~~~go
-log.Trace("Something very low level.")
-log.Debug("Useful debugging information.")
-log.Info("Something noteworthy happened!")
-log.Warn("You should probably take a look at this.")
-log.Error("Something failed but I'm not quitting.")
-// 记完日志后会调用os.Exit(1) 
-log.Fatal("Bye.")
-// 记完日志后会调用 panic() 
-log.Panic("I'm bailing.")
-~~~
-
-
-
-#### 设置日志级别
-
-你可以在Logger上设置日志记录级别，然后它只会记录具有该级别或以上级别任何内容的条目：
-
-~~~go
-// 会记录info及以上级别 (warn, error, fatal, panic)
-log.SetLevel(log.InfoLevel)
-~~~
-
-
-
-#### 字段
-
-Logrus鼓励通过日志字段进行谨慎的结构化日志记录，而不是冗长的、不可解析的错误消息。
-
-例如，区别于使用`log.Fatalf("Failed to send event %s to topic %s with key %d")`，你应该使用如下方式记录更容易发现的内容:
-
-```go
-log.WithFields(log.Fields{
-  "event": event,
-  "topic": topic,
-  "key": key,
-}).Fatal("Failed to send event")
-```
-
-
-
-#### 默认字段
-
-通常，将一些字段始终附加到应用程序的全部或部分的日志语句中会很有帮助。例如，你可能希望始终在请求的上下文中记录`request_id`和`user_ip`。
-
-区别于在每一行日志中写上`log.WithFields(log.Fields{"request_id": request_id, "user_ip": user_ip})`，你可以向下面的示例代码一样创建一个`logrus.Entry`去传递这些字段。
-
-```go
-requestLogger := log.WithFields(log.Fields{"request_id": request_id, "user_ip": user_ip})
-requestLogger.Info("something happened on that request") # will log request_id and user_ip
-requestLogger.Warn("something not great happened")
-```
-
-#### 日志条目
-
-除了使用`WithField`或`WithFields`添加的字段外，一些字段会自动添加到所有日志记录事中:
-
-- time：记录日志时的时间戳
-- msg：记录的日志信息
-- level：记录的日志级别
-
-#### Hooks
-
-你可以添加日志级别的钩子（Hook）。例如，向异常跟踪服务发送`Error`、`Fatal`和`Panic`、信息到StatsD或同时将日志发送到多个位置，例如syslog。
-
-Logrus配有内置钩子。在`init`中添加这些内置钩子或你自定义的钩子：
-
-```go
-import (
-  log "github.com/sirupsen/logrus"
-  "gopkg.in/gemnasium/logrus-airbrake-hook.v2" // the package is named "airbrake"
-  logrus_syslog "github.com/sirupsen/logrus/hooks/syslog"
-  "log/syslog"
-)
-
-func init() {
-
-  // Use the Airbrake hook to report errors that have Error severity or above to
-  // an exception tracker. You can create custom hooks, see the Hooks section.
-  log.AddHook(airbrake.NewHook(123, "xyz", "production"))
-
-  hook, err := logrus_syslog.NewSyslogHook("udp", "localhost:514", syslog.LOG_INFO, "")
-  if err != nil {
-    log.Error("Unable to connect to local syslog daemon")
-  } else {
-    log.AddHook(hook)
-  }
-}
-```
-
-意：Syslog钩子还支持连接到本地syslog（例如. “/dev/log” or “/var/run/syslog” or “/var/run/log”)。有关详细信息，请查看[syslog hook README](https://github.com/sirupsen/logrus/blob/master/hooks/syslog/README.md)。
-
-
-
-#### 格式化
-
-logrus内置以下两种日志格式化程序：
-
-```
-logrus.TextFormatter` `logrus.JSONFormatter
-```
-
-还支持一些第三方的格式化程序，详见项目首页。
-
-
-
-#### 记录函数名
-
-如果你希望将调用的函数名添加为字段，请通过以下方式设置：
-
-```go
-log.SetReportCaller(true)
-```
-
-这会将调用者添加为”method”，如下所示：
-
-```json
-{"animal":"penguin","level":"fatal","method":"github.com/sirupsen/arcticcreatures.migrate","msg":"a penguin swims by",
-"time":"2014-03-10 19:57:38.562543129 -0400 EDT"}
-```
-
-**注意：**，开启这个模式会增加性能开销。
-
-
-
-#### 线程安全
-
-默认的logger在并发写的时候是被mutex保护的，比如当同时调用hook和写log时mutex就会被请求，有另外一种情况，文件是以appending mode打开的， 此时的并发操作就是安全的，可以用`logger.SetNoLock()`来关闭它。
-
-
-
-#### gin框架使用logrus
-
-```go
-// a gin with logrus demo
-
-var log = logrus.New()
-
-func init() {
-	// Log as JSON instead of the default ASCII formatter.
-	log.Formatter = &logrus.JSONFormatter{}
-	// Output to stdout instead of the default stderr
-	// Can be any io.Writer, see below for File example
-	f, _ := os.Create("./gin.log")
-	log.Out = f
-	gin.SetMode(gin.ReleaseMode)
-	gin.DefaultWriter = log.Out
-	// Only log the warning severity or above.
-	log.Level = logrus.InfoLevel
-}
-
-func main() {
-	// 创建一个默认的路由引擎
-	r := gin.Default()
-	// GET：请求方式；/hello：请求的路径
-	// 当客户端以GET方法请求/hello路径时，会执行后面的匿名函数
-	r.GET("/hello", func(c *gin.Context) {
-		log.WithFields(logrus.Fields{
-			"animal": "walrus",
-			"size":   10,
-		}).Warn("A group of walrus emerges from the ocean")
-		// c.JSON：返回JSON格式的数据
-		c.JSON(200, gin.H{
-			"message": "Hello world!",
-		})
-	})
-	// 启动HTTP服务，默认在0.0.0.0:8080启动服务
-	r.Run()
-}
-```
-
-
-
 ### Go性能优化 -> 后期补充
 
 Go语言项目中的性能优化主要有以下几个方面：
@@ -6759,4 +6794,8 @@ pprof.WriteHeapProfile(w io.Writer)
 `go tool pprof`默认是使用`-inuse_space`进行统计，还可以使用`-inuse-objects`查看分配对象的数量。
 
 
+
+## 实践
+
+[编码规范](https://juejin.cn/post/7157594175846744071?share_token=f4441556-096d-4597-8998-e0517685a920)
 

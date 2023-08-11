@@ -12,6 +12,7 @@
 + [Go 语言简明教程](https://geektutu.com/post/quick-golang.html)
 + [Go 语言高级编程](https://chai2010.gitbooks.io/advanced-go-programming-book/content/)
 + [go-zero](http://www.jikejiaocheng.com/c/gozero-intro.html)
++ [代码训练营](https://lailin.xyz/)
 
 ## 了解
 

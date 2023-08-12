@@ -6567,7 +6567,7 @@ replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
 
 
 
-## Go-Zero(非常推荐)
+## Go-Zero
 
 [官方文档](https://go-zero.dev/docs/tasks)
 
@@ -6577,7 +6577,7 @@ replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
 https://github.com/zeromicro/zero-examples.git
 ~~~
 
-+ [jwt](https://juejin.cn/post/6887747505933516813)
++ [如何利用go-zero在Go中快速实现JWT认证](https://juejin.cn/post/6887747505933516813)
 + [如何让gRPC具备微服务治理能力](https://juejin.cn/post/6890696469138014222)
 + [go-zero 如何追踪你的请求链路](https://juejin.cn/post/6891457735574388743)
 + [go-zero 如何扛住流量冲击1](https://juejin.cn/post/6895928148521648141)
@@ -6598,7 +6598,25 @@ https://github.com/zeromicro/zero-examples.git
 + [带你十天轻松搞定 Go 微服务系列（10）](https://juejin.cn/post/7058069837829898270)
 + [go-zero 微服务实战系列](https://juejin.cn/post/7118920164015341604)
 
+微服务启动注意事项
+
+~~~bash
+1. goctl rpc protoc .\product.proto --go_out=. --go-grpc_out=. --zrpc_out=.
+2. goctl api go -api ./api/pay.api -dir ./api
+3. 添加Jwt 之后，需要在 header 中添加 Authorization 字段，来存放登录时生成的同 token
+~~~
+
+
+
+
+
+
+
+
+
 ## 部署应用
+
+
 
 
 

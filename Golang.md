@@ -7,12 +7,9 @@
 + [菜鸟教程-完结](https://www.runoob.com/go/go-tutorial.html)
 + [Go by Example-完结](https://gobyexample-cn.github.io/)
 + [TopGoer 教程](http://www.topgoer.com/)
-+ [跟煎鱼学Go-完结](https://eddycjy.gitbook.io/golang/)
 + [Go 语言简明教程-完结](https://geektutu.com/post/quick-golang.html)
-+ [Go 语言高级编程](https://chai2010.gitbooks.io/advanced-go-programming-book/content/)
-+ [go-zero](http://www.jikejiaocheng.com/c/gozero-intro.html)
++ [go-zero](https://go-zero.dev/docs/tasks)
 + [代码训练营](https://lailin.xyz/)
-+ [Go语言中文网](https://studygolang.com/)
 
 ## 了解
 
